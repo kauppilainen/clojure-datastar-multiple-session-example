@@ -23,19 +23,35 @@
     [starfederation.datastar.clojure.api :as d*]))
 
 
-(def home-page
-  (-> (io/resource "public/hello-world.html")
+(defn home-page [n]
+  (-> (io/resource (str "public/hello-world" n ".html"))
       slurp
       (string/split-lines)
       (->> (drop 3)
            (apply str))))
 
 
-(defn home
+(defn home1
   [_req respond _raise]
-  (prn "Root route visited")
+  (prn "home1 route visited")
   (respond
-    (-> home-page
+    (-> (home-page nil)
+        (ruresp/response)
+        (ruresp/content-type "text/html"))))
+
+(defn home2
+  [_req respond _raise]
+  (prn "home1 route visited")
+  (respond
+    (-> (home-page 2)
+        (ruresp/response)
+        (ruresp/content-type "text/html"))))
+
+(defn home3
+  [_req respond _raise]
+  (prn "home1 route visited")
+  (respond
+    (-> (home-page 3)
         (ruresp/response)
         (ruresp/content-type "text/html"))))
 
@@ -86,7 +102,10 @@
 
 
 (def routes
-  [["/" {:handler home}]
+  [["/"  {:handler home1}]
+   ["/1" {:handler home1}]
+   ["/2" {:handler home2}]
+   ["/3" {:handler home3}]
    ["/hello-world" {:id route1/route-id
                     :handler sse-handler
                     :middleware [rmparams/parameters-middleware]}]
