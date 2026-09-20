@@ -1,0 +1,156 @@
+(ns example.core
+  (:require
+    [clojure.java.io :as io]
+    [clojure.string :as string]
+    [dev.onionpancakes.chassis.compiler :as hc]
+    [dev.onionpancakes.chassis.core :as h]
+    [example.route1 :as route1]
+    [example.route2 :as route2]
+    [example.route3 :as route3]
+    [example.session :as session]
+    [example.sse :refer [sse-handler]]
+    [reitit.ring :as rr]
+    [reitit.ring.middleware.parameters :as rmparams]
+    ;; [ring-middleware-csp.core :refer [wrap-csp]]
+    [ring.middleware.content-type :refer [wrap-content-type]]
+    [ring.middleware.cookies :refer [wrap-cookies]]
+    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+    [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+    [ring.middleware.params :refer [wrap-params]]
+    [ring.middleware.resource :refer [wrap-resource]]
+    [ring.middleware.session :refer [wrap-session]]
+    [ring.util.response :as ruresp]
+    [starfederation.datastar.clojure.api :as d*]))
+
+
+(def home-page
+  (-> (io/resource "public/hello-world.html")
+      slurp
+      (string/split-lines)
+      (->> (drop 3)
+           (apply str))))
+
+
+(defn home
+  [_req respond _raise]
+  (prn "Root route visited")
+  (respond
+    (-> home-page
+        (ruresp/response)
+        (ruresp/content-type "text/html"))))
+
+
+(def message "Hello, world!")
+
+(def msg-count  (count message))
+
+
+(defn ->frag
+  [i]
+  (h/html
+    (hc/compile
+      [:div {:id "message"}
+       (subs message 0 (inc i))])))
+
+
+(defn set-message
+  [msg]
+  (prn "Setting message: " msg)
+  (h/html
+    [:div {:id "message"}
+     msg]))
+
+
+(def route-fns
+  {route1/route-id route1/lifecycle-fns
+   route2/route-id route2/lifecycle-fns
+   route3/route-id route3/lifecycle-fns})
+
+
+(defn render-session
+  [{:keys [current-route] :as data}]
+  (let [{:keys [render-fn _unmount-fn]} (get route-fns current-route)
+        {:keys [message] :as d} (get data current-route)]
+    (prn (format "Route data %s" current-route) {:data d})
+    (render-fn {:message "Hello from render loop"})))
+
+
+(defn render-and-emit-to-all-sessions
+  []
+  (let [sessions-data (vals @session/!session-state)]
+    (doseq [{:keys [sse-connection] :as data} sessions-data]
+      (let [open? (d*/patch-elements! sse-connection
+                                      (set-message
+                                        (render-session data)))]
+        (prn "SSE connection open?:" open?)))))
+
+
+(def routes
+  [["/" {:handler home}]
+   ["/hello-world" {:id route1/route-id
+                    :handler sse-handler
+                    :middleware [rmparams/parameters-middleware]}]
+   ["/hello-world2" {:id route2/route-id
+                     :handler sse-handler
+                     :middleware [rmparams/parameters-middleware]}]
+   ["/hello-world3" {:id route3/route-id
+                     :handler sse-handler
+                     :middleware [rmparams/parameters-middleware]}]])
+
+
+(def router (rr/router routes))
+
+#_(def handler (rr/ring-handler router))
+
+
+(def handler2
+  (rr/ring-handler
+    router
+    {:async? true
+     :middleware [[wrap-cookies]
+                  [wrap-content-type]
+                  [wrap-resource "assets"]
+                  ;; Ring session carrying the Auth0 sign-in (`api.auth.session`): in-memory
+                  ;; store — a restart signs everyone out, which the Electric app's per-load
+                  ;; re-authentication effectively did. SameSite=Lax so Auth0's callback GET
+                  ;; (a top-level navigation) still carries the cookie; :secure off locally,
+                  ;; where dev serves plain http on tailnet origins (same gate as ff-cookies).
+                  ;; TODO Hold on relaxing this. Look into if any auth issues arise
+                  [wrap-session #_{:cookie-attrs {:http-only true
+                                 :same-site :lax
+                                 :secure    (not ops/is-local)}}]
+                  [wrap-params]
+                  [wrap-keyword-params]
+                  [wrap-multipart-params]]}))
+
+
+(comment
+  @session/!session-state
+
+
+  ;; sse opts
+  ;; - [[id]]
+  ;; - [[retry-duration]]
+  ;; - [[selector]]
+  ;; - [[patch-mode]]
+  ;; - [[use-view-transition]]
+  ;; - [[view-transition-selector]]
+  ;; - [[element-ns]]
+    
+  ;; send to all connections
+  (let [all-connections (map (fn [[_s data]]
+                               (:sse-connection data))
+                             @session/!session-state)]
+    (doseq [conn all-connections]
+      (let [res (d*/patch-elements! conn (set-message (format "RESET!%d" (rand-int 100))))]
+        (prn "res:" res)
+        )
+      ))
+
+
+  (render-and-emit-to-all-sessions)
+
+
+  ;; TODO make handler async
+
+  )
