@@ -67,7 +67,7 @@
     (try
       (render-and-cleanup! sse route-data)
       (catch Exception e
-        (prn (str "session step failed:" (ex-message e) {:e e}))))))
+        (prn (str "Session step failed:" (ex-message e) {:e e}))))))
 
 
 (def routes
