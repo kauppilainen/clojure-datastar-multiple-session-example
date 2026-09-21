@@ -5,19 +5,15 @@
 
 
 (defn handle-sse-open
-  [{{{route-id :id} :data} :reitit.core/match :as req} sse]
-  (prn "Opening SSE stream"
-       {:level :info
-        :data {:session route-id}})
-  (session/update-session sse route-id route-id))
+  [{{{route-id :id} :data} :reitit.core/match :as req} sse-conn]
+  (prn "Opening SSE stream" {:level :info :data {:session route-id}})
+  (session/update-session sse-conn route-id))
 
 
 (defn handle-sse-close
-  [{{{route-id :id} :data} :reitit.core/match :as _req} _sse]
-  (prn "Closing SSE stream for"
-       {:level :info
-        :data {:session route-id}})
-  (session/remove-session route-id))
+  [{{{route-id :id} :data} :reitit.core/match :as _req} sse-conn]
+  (prn "Closing SSE stream for" {:level :info :data {:session route-id}})
+  (session/remove-session sse-conn))
 
 
 (defn handle-sse-exception

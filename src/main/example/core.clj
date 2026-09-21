@@ -23,7 +23,8 @@
     [starfederation.datastar.clojure.api :as d*]))
 
 
-(defn home-page [n]
+(defn home-page
+  [n]
   (-> (io/resource (str "public/hello-world" n ".html"))
       slurp
       (string/split-lines)
@@ -39,6 +40,7 @@
         (ruresp/response)
         (ruresp/content-type "text/html"))))
 
+
 (defn home2
   [_req respond _raise]
   (prn "home1 route visited")
@@ -46,6 +48,7 @@
     (-> (home-page 2)
         (ruresp/response)
         (ruresp/content-type "text/html"))))
+
 
 (defn home3
   [_req respond _raise]
@@ -56,42 +59,24 @@
         (ruresp/content-type "text/html"))))
 
 
-(def message "Hello, world!")
-
-(defn set-message
-  [msg]
-  (prn "Setting message: " msg)
-  (h/html
-    [:div {:id "message"}
-     msg]))
-
-
-(def route-fns
-  {route1/route-id route1/lifecycle-fns
-   route2/route-id route2/lifecycle-fns
-   route3/route-id route3/lifecycle-fns})
-
-
 (defn render-session
-  [{:keys [current-route] :as data}]
-  (let [{:keys [render data->render _unmount]} (get route-fns current-route)
-        route-data (get data current-route)]
-    (prn (format "Route data %s" current-route) {:data route-data})
-    (-> route-data data->render
+  [{:keys [render data->render _unmount data]}]
+  (-> data data->render render))
 
-                   render)))
 
 (defn render-and-emit-to-all-sessions
   []
-  (let [sessions-data (vals @session/!session-state)]
-    (doseq [{:keys [sse-connection] :as data} sessions-data]
-      (let [open? (d*/patch-elements! sse-connection
-                                      (render-session data))]
-        (prn "SSE connection open?:" open?)))))
+  (doseq [[sse-connection data] @session/!state]
+    (let [open? (d*/patch-elements!
+                  sse-connection (render-session data))]
+      ;; TODO add unmount if not open here
+      (prn "SSE connection open?:" open?))))
 
 
 (comment
   (render-and-emit-to-all-sessions)
+
+  
   )
 
 
@@ -138,7 +123,7 @@
 
 
 (comment
-  @session/!session-state
+  @session/!state
 
 
   ;; sse opts
