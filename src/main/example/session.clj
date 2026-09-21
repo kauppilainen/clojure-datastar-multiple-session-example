@@ -35,7 +35,7 @@
    route3/route-id route3/lifecycle-fns})
 
 
-(def !state
+(defonce !state
   (atom {}))
 
 
