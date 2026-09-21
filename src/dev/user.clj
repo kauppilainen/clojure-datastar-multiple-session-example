@@ -33,6 +33,9 @@
 
   @session/!state
 
+  ;; number of SSE connections
+  (count @session/!state)
+
 
   )
 
