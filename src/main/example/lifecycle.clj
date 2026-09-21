@@ -10,23 +10,23 @@
 
 (defn start!
   "Ticks `f` every `ms`. Returns a stop fn."
-  [f ms]
+  [ms]
   (let [ex (Executors/newSingleThreadScheduledExecutor)]
     ;; (prn "Render loop tick" (str (Instant/now)))
     ;; ponytail: try/catch is mandatory, an uncaught throw silently kills the schedule
-    (.scheduleAtFixedRate ex #(try (f) (catch Throwable t (println "tick error" t)))
+    (.scheduleAtFixedRate ex #(try (core/render-and-cleanup-all!) (catch Throwable t (println "tick error" t)))
                           0 ms TimeUnit/MILLISECONDS)
     (fn stop! [] (.shutdownNow ^ScheduledExecutorService ex) nil)))
 
 
-(def tick 1000)
+(def tick 200)
 
 (defonce !loop (atom nil))
 
 
 (defn restart!
   []
-  (swap! !loop (fn [stop] (when stop (stop)) (start! core/render-and-cleanup-all! tick))))
+  (swap! !loop (fn [stop] (when stop (stop)) (start! tick))))
 
 
 (defn stop!
@@ -38,7 +38,7 @@
   (restart!)
   (stop!)
   ;; or bare, no global:
-  (def stop (start! core/render-and-cleanup-all! 1000))
+  (def stop (start! 1000))
   (stop)
 
 

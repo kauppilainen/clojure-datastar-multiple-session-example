@@ -8,7 +8,6 @@
 (defn send!
   "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
   [[sse html]]
-  (prn "send!" sse html)
   [sse (d*/patch-elements! sse html)])
 
 

@@ -1,15 +1,24 @@
 (ns example.main
   (:require
     [example.core :as c]
+    [example.lifecycle :as lifecycle]
     [example.server :as server]))
 
 
-(defn -main [& _]
-  (let [server
-        (server/start! c/handler)]
+(def render-frequency 1000)
+
+
+(defn -main
+  [& _]
+  (let [server (server/start! c/handler)
+        stop-lifecycle (lifecycle/start! render-frequency)]
     (.addShutdownHook (Runtime/getRuntime)
                       (Thread. (fn []
-                                  (server/stop! server)
-                                  (shutdown-agents))))))
+                                 (server/stop! server)
+                                 (stop-lifecycle)
+                                 (shutdown-agents))))))
 
-(def stop (-main))
+
+(comment
+  (def stop (-main))
+  )
