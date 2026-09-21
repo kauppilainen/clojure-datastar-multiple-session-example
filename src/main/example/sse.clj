@@ -1,7 +1,15 @@
 (ns example.sse
   (:require
     [example.session :as session]
-    [starfederation.datastar.clojure.adapter.ring :refer [->sse-response on-open on-close on-exception]]))
+    [starfederation.datastar.clojure.adapter.ring :refer [->sse-response on-open on-close on-exception]]
+    [starfederation.datastar.clojure.api :as d*]))
+
+
+(defn send!
+  "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
+  [[sse html]]
+  (prn "send!" sse html)
+  [sse (d*/patch-elements! sse html)])
 
 
 (defn handle-sse-open

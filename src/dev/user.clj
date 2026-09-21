@@ -2,7 +2,7 @@
   (:require
     [example.session :as session]
     [example.server :as server]
-    [example.render :as render]
+    [example.lifecycle :as lifecycle]
     [example.core :as c]
     #_[clj-reload.core :as reload]))
 
@@ -29,7 +29,7 @@
   (server/reboot-jetty-server! #'c/handler)
 
   ;; start rendering loop
-  (render/restart!)
+  (lifecycle/restart!)
 
   @session/!state
 

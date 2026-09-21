@@ -2,30 +2,17 @@
   (:require
     [example.route1 :as route1]
     [example.route2 :as route2]
-    [example.route3 :as route3])
-  (:import
-    (java.time
-      Instant)))
+    [example.route3 :as route3]))
 
 
 (comment
-  {"session-id" ; IDs a client, i.e an SSE-connection + data
-   {:last-read nil ; used for data unsubscription
-    :sse-connection nil ; used for sending HTML
-    :current-route :route/route-id ; only current route data needed
-    :route/route-id {:init ... ; query results from first render
-                     :subscriptions
-                     {"proxy-idN" ... ; proxy-ref, feeds to render, used when unmounting
-                      }}
-    :route/route-idN {#_...}}}
-
   {:sse-connection
-   {:render (fn [data])
+   {:render (fn [_data])
     :data {:init nil
            :subscriptions {}}
-    }
-   }
-  )
+    }}
+
+  #__)
 
 
 (def route-fns
@@ -36,6 +23,11 @@
 
 (defonce !state
   (atom {}))
+
+
+(defn render-session
+  [sse {:keys [render data->render _unmount data]}]
+  [sse (-> data data->render render)])
 
 
 (defn update-session
@@ -52,8 +44,17 @@
   Does not close `sse`: the SDK closes it (on-exception -> true) and calls
   on-close -> here, so closing again would re-enter."
   [sse]
-  ;; TODO [ ] unmount all route subscriptions
   (swap! !state dissoc sse))
+
+
+(defn cleanup-session!
+  "Drops the session when `alive?` (the result of a send) is false. Returns `alive?`."
+  [[sse alive?]]
+  (when-not alive?
+    (println "SSE connection closed, dropping session")
+    (remove-session sse))
+  ;; TODO [ ] unmount all route subscriptions
+  alive?)
 
 
 (comment

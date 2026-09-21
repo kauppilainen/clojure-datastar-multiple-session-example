@@ -6,7 +6,7 @@
     [example.route2 :as route2]
     [example.route3 :as route3]
     [example.session :as session]
-    [example.sse :refer [sse-handler]]
+    [example.sse :as sse :refer [sse-handler]]
     [reitit.ring :as rr]
     [reitit.ring.middleware.parameters :as rmparams]
     ;; [ring-middleware-csp.core :refer [wrap-csp]]
@@ -56,6 +56,26 @@
         (ruresp/content-type "text/html"))))
 
 
+(def render-and-cleanup!
+  (comp session/cleanup-session! sse/send! session/render-session))
+
+
+(comment
+  (apply render-and-cleanup! (first @session/!state))
+
+  )
+
+
+(defn render-and-cleanup-all!
+  "Calls `(f sse route-data)` for every session. One failing entry doesn't stop the rest."
+  []
+  (doseq [[sse route-data] @session/!state]
+    (try
+      (render-and-cleanup! sse route-data)
+      (catch Exception e
+        (println "session step failed" (ex-message e))))))
+
+
 (def routes
   [["/"  {:handler home1}]
    ["/1" {:handler home1}]
@@ -94,23 +114,3 @@
                   [wrap-params]
                   [wrap-keyword-params]
                   [wrap-multipart-params]]}))
-
-
-(comment
-  @session/!state
-
-
-  ;; sse opts
-  ;; - [[id]]
-  ;; - [[retry-duration]]
-  ;; - [[selector]]
-  ;; - [[patch-mode]]
-  ;; - [[use-view-transition]]
-  ;; - [[view-transition-selector]]
-  ;; - [[element-ns]]
-    
-  (render-and-emit-to-all-sessions)
-
-
-
-  )
