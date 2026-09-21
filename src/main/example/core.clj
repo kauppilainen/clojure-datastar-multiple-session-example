@@ -60,12 +60,6 @@
   (comp session/cleanup-session! sse/send! session/render-session))
 
 
-(comment
-  (apply render-and-cleanup! (first @session/!state))
-
-  )
-
-
 (defn render-and-cleanup-all!
   "Calls `(f sse route-data)` for every session. One failing entry doesn't stop the rest."
   []
@@ -73,7 +67,7 @@
     (try
       (render-and-cleanup! sse route-data)
       (catch Exception e
-        (println "session step failed" (ex-message e))))))
+        (prn (str "session step failed:" (ex-message e) {:e e}))))))
 
 
 (def routes

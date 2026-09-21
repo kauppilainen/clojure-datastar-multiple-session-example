@@ -26,17 +26,15 @@
 
 
 (defn render-session
-  [sse {:keys [render data->render _unmount data]}]
+  [sse {:keys [render data->render data _mount _unmount]}]
   [sse (-> data data->render render)])
 
 
 (defn update-session
-  [sse route-id]
+  [sse req route-id]
   (swap! !state assoc sse
-         (merge
-           (get route-fns route-id)
-           {:data {:init {:message "Hello from rendering loop"} ; query results from first render
-                   :subscriptions {}}})))
+         (let [{:keys [mount] :as lifecycle-fns} (get route-fns route-id)]
+           (assoc lifecycle-fns :data (mount req)))))
 
 
 (defn remove-session

@@ -1,30 +1,60 @@
 (ns example.route3
   (:require
-    [dev.onionpancakes.chassis.compiler :as hc]
-    [dev.onionpancakes.chassis.core :as h]))
+    [dev.onionpancakes.chassis.core :as h]
+    [example.mock :as mock]))
 
 
 (def route-id :route/hello-world3)
 
+
+(def queries
+  "Pull: `(query input)` whenever render needs a value."
+  {:get-message #(mock/get-message %)})
+
+
+(defn mount
+  "Called once per session. `init` is whatever the request gives us (params, user).
+  Returns the :data the render loop reads every tick."
+  [init]
+  {:init init
+   :queries queries
+   :subscriptions {:ticker (mock/subscription #(rand-int 100) 700)}})
+
+
 (defn data->render
-  [data]
-  (-> data :init :message)
-  )
+  "From data to what render expects: pulls queries with `init` as input, reads subscriptions."
+  [{:keys [_init queries subscriptions]}]
+  {:message ((:get-message queries) 3)
+   :tick @(-> subscriptions :ticker :value)})
+
 
 (defn render
-  [message]
+  [{:keys [message tick]}]
   (h/html
-    (hc/compile
-      [:div {:id "message"}
-       (format "Route 3: %s" message)])))
+    [:div {:id "message"}
+     message " " tick]))
 
 
 (defn unmount
   [subscriptions]
-  nil)
+  (run! (fn [{:keys [stop]}] (stop)) (vals subscriptions)))
 
 
 (def lifecycle-fns
-  {:render render
-   :data->render data->render
+  {:data->render data->render
+   :render render
+   :mount mount
    :unmount unmount})
+
+
+(comment
+  ;; check: tick changes between reads, unmount stops it
+  (let [data (mount {:user "felix"})
+        a (data->render data)
+        _ (Thread/sleep 800)
+        b (data->render data)]
+    (unmount (:subscriptions data))
+    (assert (not= (:tick a) (:tick b)) "subscription should have advanced")
+    [a b (render b)])
+
+  )

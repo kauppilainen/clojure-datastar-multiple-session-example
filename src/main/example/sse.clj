@@ -15,7 +15,7 @@
 (defn handle-sse-open
   [{{{route-id :id} :data} :reitit.core/match :as req} sse-conn]
   (prn "Opening SSE stream" {:level :info :data {:session route-id}})
-  (session/update-session sse-conn route-id))
+  (session/update-session sse-conn req route-id))
 
 
 (defn handle-sse-close
