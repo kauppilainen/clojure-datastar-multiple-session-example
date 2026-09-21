@@ -74,12 +74,12 @@
 
 (defn render-session
   [{:keys [current-route] :as data}]
-  (let [{:keys [render-fn data->render _unmount-fn]} (get route-fns current-route)
+  (let [{:keys [render data->render _unmount]} (get route-fns current-route)
         route-data (get data current-route)]
     (prn (format "Route data %s" current-route) {:data route-data})
     (-> route-data data->render
 
-                   render-fn)))
+                   render)))
 
 (defn render-and-emit-to-all-sessions
   []

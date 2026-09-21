@@ -31,6 +31,6 @@
 
 
 (def lifecycle-fns
-  {:render-fn render
+  {:render render
    :data->render data->render
-   :unmount-fn unmount})
+   :unmount unmount})

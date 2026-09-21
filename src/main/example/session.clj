@@ -13,7 +13,7 @@
     :current-route :route/route-id ; only current route data needed
     :route/route-id {:init ... ; query results from first render
                      :subscriptions
-                     {"proxy-idN" ... ; proxy-ref, feeds to render-fn, used when unmounting
+                     {"proxy-idN" ... ; proxy-ref, feeds to render, used when unmounting
                       }}
     :route/route-idN {#_...}}}
   )
@@ -31,13 +31,13 @@
           :current-route route-id ; only current route data needed
           route-id {:init {:message "Hello from rendering loop"} ; query results from first render
                     :subscriptions {}
-                    ;; {"proxy-idN" ... ; proxy-ref, feeds to render-fn, used when unmounting
+                    ;; {"proxy-idN" ... ; proxy-ref, feeds to render, used when unmounting
                     ;;  }
                     }}))
 
 
 (defn remove-session
-  "`unmount-fn` takes subscriptions and gracefully shuts them down"
+  "`unmount` takes subscriptions and gracefully shuts them down"
   [session]
   (let [{:keys [sse-connection]} (get !session-state session)]
     (d*/close-sse! sse-connection)
