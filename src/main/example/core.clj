@@ -1,10 +1,8 @@
 (ns example.core
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as string]
-    [example.route1 :as route1]
-    [example.route2 :as route2]
-    [example.route3 :as route3]
+    [dev.onionpancakes.chassis.compiler :as cc]
+    [dev.onionpancakes.chassis.core :as h]
+    [example.live :as live]
     [example.session :as session]
     [example.sse :as sse :refer [sse-handler]]
     [reitit.ring :as rr]
@@ -21,37 +19,29 @@
 
 
 (defn home-page
+  "The Datastar hello-world page, subscribed to `/live/:n` for the same number."
   [n]
-  (-> (io/resource (str "public/hello-world" n ".html"))
-      slurp
-      (string/split-lines)
-      (->> (drop 3)
-           (apply str))))
+  (h/html
+    (cc/compile
+      [h/doctype-html5
+       [:html {:lang "en"}
+        [:head
+         [:title "Datastar SDK Demo"]
+         [:script {:src "https://unpkg.com/@tailwindcss/browser@4"}]
+         [:script {:type "module"
+                   :src "https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js"}]]
+        [:body {:class "bg-white dark:bg-gray-900 text-lg max-w-xl mx-auto my-16"}
+         [:div {:data-effect (str "@get('/live/" n "')")}]
+         [:div {:class "my-16 text-8xl font-bold text-transparent"
+                :style "background: linear-gradient(to right in oklch, red, orange, yellow, green, blue, blue, violet); background-clip: text"}
+          [:div#message "Hello, world!"]]]]])))
 
 
-(defn home1
-  [_req respond _raise]
-  (prn "home1 route visited")
+(defn home
+  [{{:keys [n] :or {n "1"}} :path-params} respond _raise]
+  (prn (str "home" n " route visited"))
   (respond
-    (-> (home-page nil)
-        (ruresp/response)
-        (ruresp/content-type "text/html"))))
-
-
-(defn home2
-  [_req respond _raise]
-  (prn "home1 route visited")
-  (respond
-    (-> (home-page 2)
-        (ruresp/response)
-        (ruresp/content-type "text/html"))))
-
-
-(defn home3
-  [_req respond _raise]
-  (prn "home1 route visited")
-  (respond
-    (-> (home-page 3)
+    (-> (home-page n)
         (ruresp/response)
         (ruresp/content-type "text/html"))))
 
@@ -71,22 +61,14 @@
 
 
 (def routes
-  [["/"  {:handler home1}]
-   ["/1" {:handler home1}]
-   ["/2" {:handler home2}]
-   ["/3" {:handler home3}]
-   ["/hello-world" {:id route1/route-id
-                    :handler sse-handler
-                    :middleware [rmparams/parameters-middleware]}]
-   ["/hello-world2" {:id route2/route-id
-                     :handler sse-handler
-                     :middleware [rmparams/parameters-middleware]}]
-   ["/hello-world3" {:id route3/route-id
-                     :handler sse-handler
-                     :middleware [rmparams/parameters-middleware]}]])
+  [["/live/:n" {:id live/route-id
+                :handler sse-handler
+                :middleware [rmparams/parameters-middleware]}]
+   ["/" {:handler home}]
+   ["/:n" {:handler home}]])
 
 
-(def router (rr/router routes))
+(def router (rr/router routes {:conflicts nil}))
 
 
 (def handler

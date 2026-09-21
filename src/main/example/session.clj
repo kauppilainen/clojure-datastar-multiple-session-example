@@ -1,8 +1,6 @@
 (ns example.session
   (:require
-    [example.route1 :as route1]
-    [example.route2 :as route2]
-    [example.route3 :as route3]))
+    [example.live :as live]))
 
 
 (comment
@@ -16,9 +14,7 @@
 
 
 (def route-fns
-  {route1/route-id route1/lifecycle-fns
-   route2/route-id route2/lifecycle-fns
-   route3/route-id route3/lifecycle-fns})
+  {live/route-id live/lifecycle-fns})
 
 
 (defonce !state
