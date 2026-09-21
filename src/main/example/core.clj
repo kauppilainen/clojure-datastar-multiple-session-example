@@ -58,17 +58,6 @@
 
 (def message "Hello, world!")
 
-(def msg-count  (count message))
-
-
-(defn ->frag
-  [i]
-  (h/html
-    (hc/compile
-      [:div {:id "message"}
-       (subs message 0 (inc i))])))
-
-
 (defn set-message
   [msg]
   (prn "Setting message: " msg)
@@ -85,20 +74,25 @@
 
 (defn render-session
   [{:keys [current-route] :as data}]
-  (let [{:keys [render-fn _unmount-fn]} (get route-fns current-route)
-        {:keys [message] :as d} (get data current-route)]
-    (prn (format "Route data %s" current-route) {:data d})
-    (render-fn {:message "Hello from render loop"})))
+  (let [{:keys [render-fn data->render _unmount-fn]} (get route-fns current-route)
+        route-data (get data current-route)]
+    (prn (format "Route data %s" current-route) {:data route-data})
+    (-> route-data data->render
 
+                   render-fn)))
 
 (defn render-and-emit-to-all-sessions
   []
   (let [sessions-data (vals @session/!session-state)]
     (doseq [{:keys [sse-connection] :as data} sessions-data]
       (let [open? (d*/patch-elements! sse-connection
-                                      (set-message
-                                        (render-session data)))]
+                                      (render-session data))]
         (prn "SSE connection open?:" open?)))))
+
+
+(comment
+  (render-and-emit-to-all-sessions)
+  )
 
 
 (def routes
@@ -156,20 +150,8 @@
   ;; - [[view-transition-selector]]
   ;; - [[element-ns]]
     
-  ;; send to all connections
-  (let [all-connections (map (fn [[_s data]]
-                               (:sse-connection data))
-                             @session/!session-state)]
-    (doseq [conn all-connections]
-      (let [res (d*/patch-elements! conn (set-message (format "RESET!%d" (rand-int 100))))]
-        (prn "res:" res)
-        )
-      ))
-
-
   (render-and-emit-to-all-sessions)
 
 
-  ;; TODO make handler async
 
   )

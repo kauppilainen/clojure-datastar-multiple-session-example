@@ -6,9 +6,12 @@
 
 (def route-id :route/hello-world2)
 
+(defn data->render
+  [data]
+  (-> data :init :message))
 
 (defn render
-  [{:keys [message] :as _data}]
+  [message]
   (h/html
     (hc/compile
       [:div {:id "message"}
@@ -22,6 +25,7 @@
 
 (def lifecycle-fns
   {:render-fn render
+   :data->render data->render
    :unmount-fn unmount})
 
 

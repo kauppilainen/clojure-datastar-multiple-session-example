@@ -35,13 +35,6 @@
            (start! handler opts))))
 
 (comment
-  (stop! @!jetty-server)
-
-
   (reboot-jetty-server! #'c/handler2)
 
-
-
-
-
-  )
+  #__)

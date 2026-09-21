@@ -11,7 +11,7 @@
    {:last-read nil ; used for data unsubscription
     :sse-connection nil ; used for sending HTML
     :current-route :route/route-id ; only current route data needed
-    :route/route-id {:init-data ... ; query results from first render
+    :route/route-id {:init ... ; query results from first render
                      :subscriptions
                      {"proxy-idN" ... ; proxy-ref, feeds to render-fn, used when unmounting
                       }}
@@ -29,8 +29,7 @@
          {:last-read (Instant/now)
           :sse-connection sse
           :current-route route-id ; only current route data needed
-          route-id {:init-data
-                    {:message "Hello from rendering loop"} ; query results from first render
+          route-id {:init {:message "Hello from rendering loop"} ; query results from first render
                     :subscriptions {}
                     ;; {"proxy-idN" ... ; proxy-ref, feeds to render-fn, used when unmounting
                     ;;  }
@@ -48,5 +47,6 @@
 
 (comment
   @!session-state
+  (reset! !session-state {})
 
   )
