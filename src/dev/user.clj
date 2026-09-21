@@ -1,21 +1,39 @@
 (ns user
   (:require
-    [clj-reload.core :as reload]))
+    [example.session :as session]
+    [example.server :as server]
+    [example.render :as render]
+    [example.core :as c]
+    #_[clj-reload.core :as reload]))
 
 
 (alter-var-root #'*warn-on-reflection* (constantly true))
 
 
-(reload/init
+#_(reload/init
   {:no-reload ['user]})
 
 
-(defn reload! []
+#_(defn reload! []
   (reload/reload))
 
 
+
+
+
+
 (comment
-  (reload!)
-  *e)
+  *e
+
+  ;; start server
+  (server/reboot-jetty-server! #'c/handler)
+
+  ;; start rendering loop
+  (render/restart!)
+
+  @session/!state
+
+
+  )
 
 

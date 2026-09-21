@@ -1,4 +1,4 @@
-(ns main.example.render
+(ns example.render
   (:require
     [example.session :as session]
     [starfederation.datastar.clojure.api :as d*])
