@@ -1,4 +1,4 @@
-# Hello world example
+# SSE connection handling example
 
 ## Running the example
 
