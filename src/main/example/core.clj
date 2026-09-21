@@ -74,10 +74,8 @@
 
 (def router (rr/router routes))
 
-#_(def handler (rr/ring-handler router))
 
-
-(def handler2
+(def handler
   (rr/ring-handler
     router
     {:async? true

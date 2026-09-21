@@ -6,7 +6,6 @@
 
 (defn -main [& _]
   (let [server
-        #_(server/start! c/handler)
         (server/start! c/handler2)]
     (.addShutdownHook (Runtime/getRuntime)
                       (Thread. (fn []
