@@ -2,8 +2,6 @@
   (:require
     [clojure.java.io :as io]
     [clojure.string :as string]
-    [dev.onionpancakes.chassis.compiler :as hc]
-    [dev.onionpancakes.chassis.core :as h]
     [example.route1 :as route1]
     [example.route2 :as route2]
     [example.route3 :as route3]
@@ -19,15 +17,7 @@
     [ring.middleware.params :refer [wrap-params]]
     [ring.middleware.resource :refer [wrap-resource]]
     [ring.middleware.session :refer [wrap-session]]
-    [ring.util.response :as ruresp]
-    [starfederation.datastar.clojure.api :as d*])
-  (:import
-    (java.time
-      Instant)
-    (java.util.concurrent
-      Executors
-      ScheduledExecutorService
-      TimeUnit)))
+    [ring.util.response :as ruresp]))
 
 
 (defn home-page
@@ -64,76 +54,6 @@
     (-> (home-page 3)
         (ruresp/response)
         (ruresp/content-type "text/html"))))
-
-
-(defn render-session
-  [{:keys [render data->render _unmount data]}]
-  (-> data data->render render))
-
-
-(defn render-and-emit-to-all-sessions
-  []
-  (doseq [[sse-connection data] @session/!state]
-    (let [open? (d*/patch-elements!
-                  sse-connection (render-session data))]
-      ;; TODO add unmount if not open here
-      (prn "SSE connection open?:" open?))))
-
-
-;; Render loop
-(defn render-all!
-  []
-  (doseq [[sse {:keys [render data->render data]}] @session/!state]
-    (try
-      (d*/patch-elements! sse (-> data data->render render))
-      (catch Exception e
-        (println "render failed, dropping session" (ex-message e))
-        (session/remove-session sse)))))
-
-
-(defn start!
-  "Ticks `f` every `ms`. Returns a stop fn."
-  [f ms]
-  (let [ex (Executors/newSingleThreadScheduledExecutor)]
-    ;; (prn "Render loop tick" (str (Instant/now)))
-    ;; ponytail: try/catch is mandatory, an uncaught throw silently kills the schedule
-    (.scheduleAtFixedRate ex #(try (f) (catch Throwable t (println "tick error" t)))
-                          0 ms TimeUnit/MILLISECONDS)
-    (fn stop! [] (.shutdownNow ^ScheduledExecutorService ex) nil)))
-
-
-;; defonce so clj-reload / re-eval doesn't orphan a running loop
-(defonce !loop (atom nil))
-
-
-(defn restart!
-  []
-  (swap! !loop (fn [stop] (when stop (stop)) (start! render-all! 1000))))
-
-
-(defn stop!
-  []
-  (swap! !loop (fn [stop] (when stop (stop)) nil)))
-
-
-(comment
-  (restart!)
-  (stop!)
-  ;; or bare, no global:
-  (def stop (start! render-all! 1000))
-  (stop))
-
-
-;;
-
-
-
-(comment
-  (render-and-emit-to-all-sessions)
-  (render-all!)
-
-  
-  )
 
 
 (def routes
