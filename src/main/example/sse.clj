@@ -26,9 +26,11 @@
      - `:data-lines`: data lines for this event
      - `:opts`: options used when sending"
   [_sse e ctx]
-  (prn
-    (ex-message e)
-    {:level :error :data (assoc ctx :exception e)}))
+  (prn "Entered `handle-sse-exception`")
+  (prn (ex-message e)
+       #_{:level :error :data (assoc ctx :exception e)})
+  ;; truthy => SDK closes the generator and fires on-close (-> remove-session)
+  true)
 
 
 (defn sse-handler

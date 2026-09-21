@@ -14,14 +14,21 @@
   (-> data data->render render))
 
 
+(defn send!
+  "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
+  [sse html]
+  (d*/patch-elements! sse html))
+
+
 (defn render-all!
   []
   (doseq [[sse route-data] @session/!state]
     (try
-      (d*/patch-elements! sse (render-session route-data))
+      (when-not (send! sse (render-session route-data))
+        (println "SSE connection closed, dropping session")
+        (session/remove-session sse))
       (catch Exception e
-        (println "render failed, dropping session" (ex-message e))
-        (session/remove-session sse)))))
+        (println "render failed" (ex-message e))))))
 
 
 (defn start!

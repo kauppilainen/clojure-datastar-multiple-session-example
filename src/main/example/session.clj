@@ -2,8 +2,7 @@
   (:require
     [example.route1 :as route1]
     [example.route2 :as route2]
-    [example.route3 :as route3]
-    [starfederation.datastar.clojure.api :as d*])
+    [example.route3 :as route3])
   (:import
     (java.time
       Instant)))
@@ -49,9 +48,10 @@
 
 
 (defn remove-session
-  "`unmount` takes subscriptions and gracefully shuts them down"
+  "`unmount` takes subscriptions and gracefully shuts them down.
+  Does not close `sse`: the SDK closes it (on-exception -> true) and calls
+  on-close -> here, so closing again would re-enter."
   [sse]
-  (d*/close-sse! sse)
   ;; TODO [ ] unmount all route subscriptions
   (swap! !state dissoc sse))
 
