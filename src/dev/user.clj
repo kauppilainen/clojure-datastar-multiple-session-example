@@ -1,28 +1,28 @@
 (ns user
   (:require
-    [example.session :as session]
-    [example.server :as server]
-    [example.lifecycle :as lifecycle]
+    [clj-reload.core :as reload]
     [example.core :as c]
-    #_[clj-reload.core :as reload]))
+    [example.lifecycle :as lifecycle]
+    [example.server :as server]
+    [example.session :as session]))
 
 
 (alter-var-root #'*warn-on-reflection* (constantly true))
 
 
-#_(reload/init
+(reload/init
   {:no-reload ['user]})
 
 
-#_(defn reload! []
+(defn reload!
+  []
   (reload/reload))
 
 
-
-
-
-
 (comment
+  (reload/reload)
+
+
   *e
 
   ;; start server
@@ -36,7 +36,5 @@
   ;; number of SSE connections
   (count @session/!state)
 
-
+  (reset! session/!state {})
   )
-
-

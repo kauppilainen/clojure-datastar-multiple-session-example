@@ -20,7 +20,7 @@
 (defn handle-sse-close
   [{{{route-id :id} :data} :reitit.core/match :as _req} sse-conn]
   (prn "Closing SSE stream for" {:level :info :data {:session route-id}})
-  (session/remove-session sse-conn))
+  (session/remove-session! sse-conn))
 
 
 (defn handle-sse-exception

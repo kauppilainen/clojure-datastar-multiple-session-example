@@ -32,7 +32,7 @@
                    :src "https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js"}]]
         [:body {:class "bg-white dark:bg-gray-900 text-lg max-w-xl mx-auto my-16"}
          [:div {:data-effect (str "@get('/live/" n "')")}]
-         [:div {:class "my-16 text-8xl font-bold text-transparent"
+         [:div {:class "my-16 text-2xl font-bold text-transparent"
                 :style "background: linear-gradient(to right in oklch, red, orange, yellow, green, blue, blue, violet); background-clip: text"}
           [:div#message "Hello, world!"]]]]])))
 

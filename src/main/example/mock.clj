@@ -3,7 +3,7 @@
 
 (defn get-message
   [n]
-  (str "Hello from rendering loop " n))
+  (str "Hello from session " n))
 
 
 (defn subscription

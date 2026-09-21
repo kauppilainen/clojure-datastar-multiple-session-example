@@ -33,7 +33,8 @@
   [{:keys [message tick]}]
   (h/html
     [:div {:id "message"}
-     message " " tick]))
+     [:p message]
+     [:div "Subscription: " tick]]))
 
 
 (defn unmount

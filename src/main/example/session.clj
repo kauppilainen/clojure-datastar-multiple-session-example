@@ -13,7 +13,7 @@
   #__)
 
 
-(def route-fns
+(def route->lifecycle-fns
   {live/route-id live/lifecycle-fns})
 
 
@@ -29,11 +29,12 @@
 (defn update-session
   [sse req route-id]
   (swap! !state assoc sse
-         (let [{:keys [mount] :as lifecycle-fns} (get route-fns route-id)]
-           (assoc lifecycle-fns :data (mount req)))))
+         (let [{:keys [mount] :as lifecycle-fns} (get route->lifecycle-fns route-id)]
+           (assoc lifecycle-fns
+                  :data (mount req)))))
 
 
-(defn remove-session
+(defn remove-session!
   "`unmount` takes subscriptions and gracefully shuts them down.
   Does not close `sse`: the SDK closes it (on-exception -> true) and calls
   on-close -> here, so closing again would re-enter."
@@ -45,9 +46,11 @@
   "Drops the session when `alive?` (the result of a send) is false. Returns `alive?`."
   [[sse alive?]]
   (when-not alive?
-    (println "SSE connection closed, dropping session")
-    (remove-session sse))
-  ;; TODO [ ] unmount all route subscriptions
+    (println "SSE connection closed, unmounting session")
+    ;; TODO [ ] unmount all route subscriptions
+    (remove-session! sse)
+    )
+  
   alive?)
 
 
