@@ -20,7 +20,14 @@
     [ring.middleware.resource :refer [wrap-resource]]
     [ring.middleware.session :refer [wrap-session]]
     [ring.util.response :as ruresp]
-    [starfederation.datastar.clojure.api :as d*]))
+    [starfederation.datastar.clojure.api :as d*])
+  (:import
+    (java.time
+      Instant)
+    (java.util.concurrent
+      Executors
+      ScheduledExecutorService
+      TimeUnit)))
 
 
 (defn home-page
@@ -73,8 +80,57 @@
       (prn "SSE connection open?:" open?))))
 
 
+;; Render loop
+(defn render-all!
+  []
+  (doseq [[sse {:keys [render data->render data]}] @session/!state]
+    (try
+      (d*/patch-elements! sse (-> data data->render render))
+      (catch Exception e
+        (println "render failed, dropping session" (ex-message e))
+        (session/remove-session sse)))))
+
+
+(defn start!
+  "Ticks `f` every `ms`. Returns a stop fn."
+  [f ms]
+  (let [ex (Executors/newSingleThreadScheduledExecutor)]
+    ;; (prn "Render loop tick" (str (Instant/now)))
+    ;; ponytail: try/catch is mandatory, an uncaught throw silently kills the schedule
+    (.scheduleAtFixedRate ex #(try (f) (catch Throwable t (println "tick error" t)))
+                          0 ms TimeUnit/MILLISECONDS)
+    (fn stop! [] (.shutdownNow ^ScheduledExecutorService ex) nil)))
+
+
+;; defonce so clj-reload / re-eval doesn't orphan a running loop
+(defonce !loop (atom nil))
+
+
+(defn restart!
+  []
+  (swap! !loop (fn [stop] (when stop (stop)) (start! render-all! 1000))))
+
+
+(defn stop!
+  []
+  (swap! !loop (fn [stop] (when stop (stop)) nil)))
+
+
+(comment
+  (restart!)
+  (stop!)
+  ;; or bare, no global:
+  (def stop (start! render-all! 1000))
+  (stop))
+
+
+;;
+
+
+
 (comment
   (render-and-emit-to-all-sessions)
+  (render-all!)
 
   
   )
