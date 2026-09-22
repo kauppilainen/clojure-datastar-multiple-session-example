@@ -7,20 +7,20 @@
 
 (defn send!
   "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
-  [[sse html]]
-  [sse (d*/patch-elements! sse html)])
+  [sse html]
+  (d*/patch-elements! sse html))
 
 
 (defn handle-sse-open
   [{{{route-id :id} :data} :reitit.core/match :as req} sse-conn]
   (prn "Opening SSE stream" {:level :info :data {:session route-id}})
-  (session/update-session sse-conn req route-id))
+  (session/update-session! sse-conn req route-id))
 
 
 (defn handle-sse-close
   [{{{route-id :id} :data} :reitit.core/match :as _req} sse-conn]
   (prn "Closing SSE stream for" {:level :info :data {:session route-id}})
-  (session/remove-session! sse-conn))
+  (session/cleanup-sessions! [sse-conn]))
 
 
 (defn handle-sse-exception
@@ -36,7 +36,7 @@
   (prn "Entered `handle-sse-exception`")
   (prn (ex-message e)
        #_{:level :error :data (assoc ctx :exception e)})
-  ;; truthy => SDK closes the generator and fires on-close (-> remove-session)
+  ;; truthy => SDK closes the generator and fires on-close (-> cleanup-sessions!)
   true)
 
 

@@ -19,7 +19,7 @@
     (fn stop! [] (.shutdownNow ^ScheduledExecutorService ex) nil)))
 
 
-(def tick 200)
+(def tick 1000)
 
 (defonce !loop (atom nil))
 
@@ -36,7 +36,9 @@
 
 (comment
   (restart!)
+
   (stop!)
+
   ;; or bare, no global:
   (def stop (start! 1000))
   (stop)

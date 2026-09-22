@@ -46,18 +46,39 @@
         (ruresp/content-type "text/html"))))
 
 
-(def render-and-cleanup!
-  (comp session/cleanup-session! sse/send! session/render-session))
+(defn render-and-send!
+  "One `!state` entry -> [sse alive?]. A render error keeps the session: only a dead send drops it."
+  [[sse route-data]]
+  (try
+    [sse (sse/send! sse (session/render-session route-data))]
+    (catch Exception e
+      (prn (str "Session step failed:" (ex-message e) {:e e}))
+      [sse true])))
 
 
 (defn render-and-cleanup-all!
-  "Calls `(f sse route-data)` for every session. One failing entry doesn't stop the rest."
+  "Tight loop: render+send every session, then unmount and drop the dead ones."
   []
-  (doseq [[sse route-data] @session/!state]
-    (try
-      (render-and-cleanup! sse route-data)
-      (catch Exception e
-        (prn (str "Session step failed:" (ex-message e) {:e e}))))))
+  (->> @session/!state
+       (mapv render-and-send!)
+       (keep (fn [[sse alive?]] (when-not alive? sse)))
+       (session/cleanup-sessions!)))
+
+
+(comment
+  ;; check: dead sends are unmounted and dropped after the loop, live ones kept
+  (let [!stopped (atom #{})
+        rd (fn [id] {:render str :data->render identity :unmount live/unmount
+                     :data {:subscriptions {id {:stop #(swap! !stopped conj id)}}}})]
+    (swap! session/!state assoc :dead (rd :dead) :alive (rd :alive))
+    (with-redefs [sse/send! (fn [sse _html] (= :alive sse))]
+      (render-and-cleanup-all!))
+    (assert (= #{:dead} @!stopped) "only the dead session is unmounted")
+    (assert (contains? @session/!state :alive) "live connection should be kept")
+    (session/cleanup-sessions! [:alive])
+    (assert (= #{:dead :alive} @!stopped) "on-close path unmounts too")
+    (assert (not (contains? @session/!state :alive))))
+  )
 
 
 (def routes
