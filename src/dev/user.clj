@@ -19,11 +19,20 @@
   (reload/reload))
 
 
-(comment
+(defn reload-all!
+  []
   (reload/reload)
+  ;; start server
+  (server/reboot-jetty-server! #'c/handler)
+  ;; start rendering loop
+  (lifecycle/restart!))
 
 
-  *e
+(comment
+  (reload-all!)
+
+
+  (reload/reload)
 
   ;; start server
   (server/reboot-jetty-server! #'c/handler)
@@ -37,4 +46,8 @@
   (count @session/!state)
 
   (reset! session/!state {})
+
+
+
+  *e
   )

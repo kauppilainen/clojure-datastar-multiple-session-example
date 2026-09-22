@@ -39,7 +39,7 @@
 
 (defn home
   [{{:keys [n] :or {n "1"}} :path-params} respond _raise]
-  (prn (str "home" n " route visited"))
+  (println (str "home" n " route visited"))
   (respond
     (-> (home-page n)
         (ruresp/response)
@@ -52,28 +52,30 @@
   (try
     [sse (sse/send! sse (session/render-session route-data))]
     (catch Exception e
-      (prn (str "Session step failed:" (ex-message e) {:e e}))
+      (println (str "Session step failed:" (ex-message e) {:e e}))
       [sse true])))
 
 
 (defn cleanup!
   [sses]
-  (prn "cleanup!: Starting")
+  (println "cleanup!: Starting")
   (run!
     (fn [[sse alive?]]
       (when-not alive?
-        (prn "cleanup!: Closing SSE connection")
+        (println "cleanup!: Closing SSE connection")
         (sse/close! sse)))
     sses)
-  (prn "cleanup!: Ending"))
+  (println "cleanup!: Ending"))
 
 
 (defn render-and-cleanup-all!
   "Tight loop: render+send every session, then unmount and drop the dead ones."
   []
-  (->> @session/!state
-       (mapv render-and-send!)
-       (cleanup!)))
+  (let [state @session/!state]
+    (println (format "Rendering %d clients" (count state))) 
+    (->> state
+         (mapv render-and-send!)
+         (cleanup!))))
 
 
 (comment

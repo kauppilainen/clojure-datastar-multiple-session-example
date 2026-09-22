@@ -8,25 +8,25 @@
 (defn send!
   "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
   [sse html]
-  (prn "Sending HTML payload")
+  #_(println "Sending HTML payload")
   (d*/patch-elements! sse html))
 
 
 (defn close!
   [sse]
-  (prn "Closing SSE connection")
+  (println "Closing SSE connection")
   (d*/close-sse! sse))
 
 
 (defn handle-sse-open
   [{{{route-id :id} :data} :reitit.core/match :as req} sse-conn]
-  (prn "Opening SSE stream" {:level :info :data {:session route-id}})
+  (println "Opening SSE stream" {:level :info :data {:session route-id}})
   (session/update-session! sse-conn req route-id))
 
 
 (defn handle-sse-close
   [{{{route-id :id} :data} :reitit.core/match :as _req} sse-conn]
-  (prn "Closing SSE stream for " route-id)
+  (println "Closing SSE stream for " route-id)
   (session/cleanup-sessions! [sse-conn]))
 
 
@@ -40,7 +40,7 @@
      - `:data-lines`: data lines for this event
      - `:opts`: options used when sending"
   [_sse _e _ctx]
-  (prn "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
+  (println "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
   ;; NOTE If fn return truthy the SDK automatically runs `on-close` fn
   false)
 

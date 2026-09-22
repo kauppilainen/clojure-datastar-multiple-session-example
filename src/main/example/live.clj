@@ -12,7 +12,7 @@
   Returns the mounted map: `:data` the render loop reads every tick and
   `:subscriptions` that `unmount` stops."
   [req]
-  (prn "mount: mounting data and subscriptions")
+  (println "mount: mounting data and subscriptions")
   {:data
    {:message (mock/get-message (-> req :path-params :n))}
    :subscriptions
@@ -37,7 +37,7 @@
 
 (defn unmount
   [subscriptions]
-  (prn "unmount: unmounting subscriptions" )
+  (println "unmount: unmounting subscriptions" )
   (run! (fn [{:keys [stop]}] (stop)) (vals subscriptions)))
 
 
