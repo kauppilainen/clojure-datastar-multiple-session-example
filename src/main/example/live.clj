@@ -37,7 +37,7 @@
 
 (defn unmount
   [subscriptions]
-  (println "unmount: unmounting subscriptions" )
+  (println "unmount: unmounting subscriptions:" (keys subscriptions))
   (run! (fn [{:keys [stop]}] (stop)) (vals subscriptions)))
 
 

@@ -14,13 +14,12 @@
 
 (defn close!
   [sse]
-  (println "Closing SSE connection")
   (d*/close-sse! sse))
 
 
 (defn handle-sse-open
   [{{{route-id :id} :data} :reitit.core/match :as req} sse-conn]
-  (println "Opening SSE stream" {:level :info :data {:session route-id}})
+  (println "Opening SSE stream")
   (session/update-session! sse-conn req route-id))
 
 
@@ -40,7 +39,7 @@
      - `:data-lines`: data lines for this event
      - `:opts`: options used when sending"
   [_sse _e _ctx]
-  (println "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
+  #_(println "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
   ;; NOTE If fn return truthy the SDK automatically runs `on-close` fn
   false)
 
