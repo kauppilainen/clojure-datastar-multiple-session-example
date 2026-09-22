@@ -8,7 +8,14 @@
 (defn send!
   "Patch `html` into the client behind `sse`. Returns false when the connection is dead."
   [sse html]
+  (prn "Sending HTML payload")
   (d*/patch-elements! sse html))
+
+
+(defn close!
+  [sse]
+  (prn "Closing SSE connection")
+  (d*/close-sse! sse))
 
 
 (defn handle-sse-open
@@ -19,7 +26,7 @@
 
 (defn handle-sse-close
   [{{{route-id :id} :data} :reitit.core/match :as _req} sse-conn]
-  (prn "Closing SSE stream for" {:level :info :data {:session route-id}})
+  (prn "Closing SSE stream for " route-id)
   (session/cleanup-sessions! [sse-conn]))
 
 

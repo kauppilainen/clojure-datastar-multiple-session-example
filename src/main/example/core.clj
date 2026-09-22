@@ -56,13 +56,24 @@
       [sse true])))
 
 
+(defn cleanup!
+  [sses]
+  (prn "cleanup!: Starting")
+  (run!
+    (fn [[sse alive?]]
+      (when-not alive?
+        (prn "cleanup!: Closing SSE connection" alive?)
+        (sse/close! sse)))
+    sses)
+  (prn "cleanup!: Ending"))
+
+
 (defn render-and-cleanup-all!
   "Tight loop: render+send every session, then unmount and drop the dead ones."
   []
   (->> @session/!state
        (mapv render-and-send!)
-       (keep (fn [[sse alive?]] (when-not alive? sse)))
-       (session/cleanup-sessions!)))
+       (cleanup!)))
 
 
 (comment
