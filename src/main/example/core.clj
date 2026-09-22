@@ -62,7 +62,7 @@
   (run!
     (fn [[sse alive?]]
       (when-not alive?
-        (prn "cleanup!: Closing SSE connection" alive?)
+        (prn "cleanup!: Closing SSE connection")
         (sse/close! sse)))
     sses)
   (prn "cleanup!: Ending"))

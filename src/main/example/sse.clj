@@ -40,8 +40,8 @@
      - `:data-lines`: data lines for this event
      - `:opts`: options used when sending"
   [_sse _e _ctx]
-  (prn "handle-sse-exception: Leaving closing of SSE conn to cleanup!")
-  ;; If fn return truthy => SDK runs `on-close` fn
+  (prn "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
+  ;; NOTE If fn return truthy the SDK automatically runs `on-close` fn
   )
 
 
