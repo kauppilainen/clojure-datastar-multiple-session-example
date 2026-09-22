@@ -42,7 +42,7 @@
   [_sse _e _ctx]
   (prn "handle-sse-exception: Leaving closing of SSE connection to `cleanup!` function")
   ;; NOTE If fn return truthy the SDK automatically runs `on-close` fn
-  )
+  false)
 
 
 (defn sse-handler
