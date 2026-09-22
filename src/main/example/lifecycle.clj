@@ -9,7 +9,7 @@
 
 
 (defn start!
-  "Ticks `f` every `ms`. Returns a stop fn."
+  "Runs `core/render-and-cleanup-all!` every `ms` on a single-thread scheduler. Returns a stop fn."
   [ms]
   (let [ex (Executors/newSingleThreadScheduledExecutor)]
     ;; (prn "Render loop tick" (str (Instant/now)))

@@ -8,18 +8,19 @@
 
 
 (defn mount
-  "Called once per session. `init` is whatever the request gives us (params, user).
-  Returns the :data the render loop reads every tick."
+  "Called once per session with the ring request (path params, user).
+  Returns the mounted map: `:data` the render loop reads every tick and
+  `:subscriptions` that `unmount` stops."
   [req]
   {:data
-   {:get-message (mock/get-message (-> req :path-params :n))}
+   {:message (mock/get-message (-> req :path-params :n))}
    :subscriptions
    {:ticker (mock/subscription #(rand-int 100) 700)}})
 
 
 (defn mounted->render
-  "From data to what render expects: pulls queries with `init` as input, reads subscriptions.
-  `init` is the request, so the page number comes from `/live/:n`."
+  "From the mounted map to what `render` expects: the message from `:data`
+  and the ticker subscription's current value."
   [{:keys [data subscriptions]}]
   {:message (:message data)
    :tick @(-> subscriptions :ticker :value)})
