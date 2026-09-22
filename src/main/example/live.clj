@@ -40,7 +40,7 @@
 
 
 (def lifecycle-fns
-  {:data->render mounted->render
+  {:mounted->render mounted->render
    :render render
    :mount mount
    :unmount unmount})

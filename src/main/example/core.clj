@@ -68,7 +68,7 @@
 (comment
   ;; check: dead sends are unmounted and dropped after the loop, live ones kept
   (let [!stopped (atom #{})
-        rd (fn [id] {:render str :data->render identity :unmount live/unmount
+        rd (fn [id] {:render str :mounted->render identity :unmount live/unmount
                      :data {:subscriptions {id {:stop #(swap! !stopped conj id)}}}})]
     (swap! session/!state assoc :dead (rd :dead) :alive (rd :alive))
     (with-redefs [sse/send! (fn [sse _html] (= :alive sse))]

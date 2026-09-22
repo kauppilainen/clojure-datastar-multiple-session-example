@@ -12,7 +12,6 @@
   "Runs `core/render-and-cleanup-all!` every `ms` on a single-thread scheduler. Returns a stop fn."
   [ms]
   (let [ex (Executors/newSingleThreadScheduledExecutor)]
-    ;; (prn "Render loop tick" (str (Instant/now)))
     ;; ponytail: try/catch is mandatory, an uncaught throw silently kills the schedule
     (.scheduleAtFixedRate ex #(try (core/render-and-cleanup-all!) (catch Throwable t (println "tick error" t)))
                           0 ms TimeUnit/MILLISECONDS)
@@ -36,7 +35,6 @@
 
 (comment
   (restart!)
-
   (stop!)
 
   ;; or bare, no global:

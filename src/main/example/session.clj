@@ -7,10 +7,10 @@
   ;; Session shape
   {:sse-connection ;; one SSE-connection is one session
    {;; Lifecycle fns (in running order)
-    :mount        (fn [req])           ;; side-effecting fn: takes request, creates session with data and mounted subscriptions
-    :data->render (fn [data])          ;; pure fn:           takes data, return transformed data 
-    :render       (fn [data])          ;; pure fn:           takes data, returns HTML
-    :unmount      (fn [subscriptions]) ;; side-effecting fn: takes SSE connection, gracefully removes session including subscriptions
+    :mount           (fn [req])           ;; side-effecting fn: takes request, creates session with data and mounted subscriptions
+    :mounted->render (fn [data])          ;; pure fn:           takes data, return transformed data 
+    :render          (fn [data])          ;; pure fn:           takes data, returns HTML
+    :unmount         (fn [subscriptions]) ;; side-effecting fn: takes SSE connection, gracefully removes session including subscriptions
 
     :mounted ;; map: produced by `(mount req)` on first load
     {:data {}          ;; data from first load
@@ -28,8 +28,8 @@
 
 
 (defn render-session
-  [{:keys [render data->render mounted]}]
-  (-> mounted data->render render))
+  [{:keys [render mounted->render mounted]}]
+  (-> mounted mounted->render render))
 
 
 (defn update-session!
