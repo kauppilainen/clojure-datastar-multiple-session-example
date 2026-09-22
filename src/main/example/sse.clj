@@ -39,12 +39,10 @@
      - `:event-type`: type of the event that failed
      - `:data-lines`: data lines for this event
      - `:opts`: options used when sending"
-  [_sse e ctx]
-  (prn "Entered `handle-sse-exception`")
-  (prn (ex-message e)
-       #_{:level :error :data (assoc ctx :exception e)})
-  ;; truthy => SDK closes the generator and fires on-close (-> cleanup-sessions!)
-  true)
+  [_sse _e _ctx]
+  (prn "handle-sse-exception: Leaving closing of SSE conn to cleanup!")
+  ;; If fn return truthy => SDK runs `on-close` fn
+  )
 
 
 (defn sse-handler
